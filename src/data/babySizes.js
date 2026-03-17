@@ -1,0 +1,47 @@
+/**
+ * Baby Size Reference
+ * Maps pregnancy week to a fruit/vegetable size comparison
+ */
+const babySizes = {
+  4: "poppy seed",
+  5: "sesame seed",
+  6: "lentil",
+  7: "blueberry",
+  8: "raspberry",
+  9: "cherry",
+  10: "prune",
+  11: "fig",
+  12: "lime",
+  13: "peach",
+  14: "lemon",
+  15: "apple",
+  16: "avocado",
+  17: "pear",
+  18: "bell pepper",
+  19: "mango",
+  20: "banana",
+  21: "carrot",
+  22: "papaya",
+  23: "grapefruit",
+  24: "ear of corn",
+  25: "cauliflower",
+  26: "lettuce head",
+  27: "cucumber",
+  28: "eggplant",
+  29: "butternut squash",
+  30: "cabbage",
+  31: "coconut",
+  32: "jicama",
+  33: "pineapple",
+  34: "cantaloupe",
+  35: "honeydew",
+  36: "romaine lettuce",
+  37: "winter melon",
+  38: "leek",
+  39: "watermelon",
+  40: "pumpkin",
+  41: "pumpkin",
+  42: "pumpkin",
+};
+
+export default babySizes;
