@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import weeklyNutrition from './data/weeklyNutrition';
 import mealDatabase from './data/mealDatabase';
 import babySizes from './data/babySizes';
-import { getWeekMeals, getTrimester, isTopTierForWeek } from './utils/mealSelection';
+import { getWeekMeals, getTrimester, isTopTierForWeek, calculateWeekFromDueDate } from './utils/mealSelection';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { CartIcon, SaveIcon } from './components/Icons';
 import WeekSlider from './components/WeekSlider';
@@ -12,12 +12,25 @@ import GroceryPanel from './components/GroceryPanel';
 import SavedMealsPanel from './components/SavedMealsPanel';
 
 export default function MamaMealPlan() {
-  const [week, setWeek] = useState(21);
+  const [dueDate, setDueDate] = useLocalStorage('mama-due-date', '');
   const [meals, setMeals] = useState({});
   const [saved, setSaved] = useLocalStorage('mama-saved-meals', []);
   const [showSaved, setShowSaved] = useState(false);
   const [showGrocery, setShowGrocery] = useState(false);
   const [excluded, setExcluded] = useState({ breakfast: [], lunch: [], dinner: [], snack: [] });
+
+  const dueDateInfo = useMemo(() => {
+    if (!dueDate) return null;
+    return calculateWeekFromDueDate(dueDate);
+  }, [dueDate]);
+
+  const calculatedWeek = dueDateInfo?.week ?? null;
+  const [week, setWeek] = useState(calculatedWeek ?? 21);
+
+  // When due date changes, snap to calculated week
+  useEffect(() => {
+    if (calculatedWeek !== null) setWeek(calculatedWeek);
+  }, [calculatedWeek]);
 
   const generateMeals = useCallback((targetWeek, exclusions = excluded) => {
     const newMeals = {};
@@ -60,11 +73,26 @@ export default function MamaMealPlan() {
   const trimester = getTrimester(week);
   const babySize = babySizes[week] || "growing!";
 
+  // Build subtitle text
+  let subtitle = `Trimester ${trimester} · Baby is the size of a ${babySize}`;
+  let countdownText = null;
+  if (dueDateInfo) {
+    if (dueDateInfo.status === 'past') {
+      countdownText = "Congratulations! Showing week 40";
+    } else if (dueDateInfo.status === 'early') {
+      countdownText = "Early days — meal plans start at week 4";
+    } else if (dueDateInfo.weeksToGo === 0) {
+      countdownText = "Baby's due any day now!";
+    } else {
+      countdownText = `${dueDateInfo.weeksToGo} week${dueDateInfo.weeksToGo === 1 ? '' : 's'} to go`;
+    }
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(180deg,#FBF7F0 0%,#F5EDE0 50%,#FBF7F0 100%)", fontFamily: "'DM Sans',sans-serif" }}>
       <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 16px" }}>
         {/* Header */}
-        <div style={{ padding: "32px 0 20px", textAlign: "center" }}>
+        <div style={{ padding: "32px 0 8px", textAlign: "center" }}>
           <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.15em", color: "#C17C74", margin: "0 0 8px", fontFamily: "'DM Sans',sans-serif" }}>
             Mama Meal Plan
           </p>
@@ -72,11 +100,52 @@ export default function MamaMealPlan() {
             Week {week}
           </h1>
           <p style={{ fontSize: 14, color: "#8B6D52", margin: 0, fontFamily: "'DM Sans',sans-serif" }}>
-            Trimester {trimester} · Baby is the size of a {babySize}
+            {subtitle}
           </p>
+          {countdownText && (
+            <p style={{ fontSize: 12, color: "#C17C74", margin: "6px 0 0", fontWeight: 500, fontFamily: "'DM Sans',sans-serif" }}>
+              {countdownText}
+            </p>
+          )}
         </div>
 
-        <WeekSlider week={week} onWeekChange={setWeek} />
+        {/* Due Date Setting */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+          padding: "12px 0 20px",
+        }}>
+          <label style={{ fontSize: 12, color: "#8B6D52", fontWeight: 600, fontFamily: "'DM Sans',sans-serif", whiteSpace: "nowrap" }}>
+            When is baby due?
+          </label>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={e => setDueDate(e.target.value)}
+            style={{
+              padding: "6px 10px", borderRadius: 8, border: "1px solid rgba(139,109,82,0.2)",
+              background: "#FFFDF9", fontSize: 13, color: "#2C1810", fontFamily: "'DM Sans',sans-serif",
+              outline: "none", cursor: "pointer",
+            }}
+          />
+          {dueDate && (
+            <button
+              onClick={() => setDueDate('')}
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: 16, color: "#8B6D52", opacity: 0.5, padding: "2px 4px", lineHeight: 1,
+              }}
+              title="Clear due date"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        <WeekSlider
+          week={week}
+          onWeekChange={setWeek}
+          currentWeek={calculatedWeek}
+        />
         <WeeklyFocusCard weekData={weekData} />
 
         {/* Action Buttons */}

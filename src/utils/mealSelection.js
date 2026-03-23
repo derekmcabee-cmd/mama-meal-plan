@@ -66,3 +66,25 @@ export function isTopTierForWeek(meal, week, type) {
 export function getTrimester(week) {
   return week <= 13 ? 1 : week <= 27 ? 2 : 3;
 }
+
+/**
+ * Calculate current pregnancy week from a due date string (YYYY-MM-DD).
+ * LMP = dueDate - 280 days; currentWeek = floor((today - LMP) / 7)
+ * Returns { week, weeksToGo, status } where status is 'normal' | 'early' | 'past'
+ */
+export function calculateWeekFromDueDate(dueDateStr) {
+  const dueDate = new Date(dueDateStr + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const lmp = new Date(dueDate);
+  lmp.setDate(lmp.getDate() - 280);
+
+  const diffMs = today - lmp;
+  const rawWeek = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
+  const weeksToGo = Math.max(0, Math.ceil((dueDate - today) / (7 * 24 * 60 * 60 * 1000)));
+
+  if (rawWeek > 42) return { week: 40, weeksToGo: 0, status: 'past' };
+  if (rawWeek < 4) return { week: 4, weeksToGo, status: 'early' };
+  return { week: rawWeek, weeksToGo, status: 'normal' };
+}
