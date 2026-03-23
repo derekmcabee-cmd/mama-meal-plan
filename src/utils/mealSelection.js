@@ -21,16 +21,23 @@ export function scoreMeal(meal, weekNutrients) {
  */
 export function getWeekMeals(week, type, exclude = []) {
   const weekData = weeklyNutrition[week] || weeklyNutrition[20];
-  const pool = mealDatabase[type].filter(meal => !exclude.includes(meal.name));
 
-  if (!pool.length) return [mealDatabase[type][0]];
+  // Step 1: Filter by week eligibility and exclusions
+  const eligible = mealDatabase[type].filter(meal =>
+    (!meal.weekRange || (week >= meal.weekRange[0] && week <= meal.weekRange[1])) &&
+    !exclude.includes(meal.name)
+  );
 
-  const scored = pool.map(meal => ({
+  if (!eligible.length) return [mealDatabase[type][0]];
+
+  // Step 2: Score by nutrient overlap
+  const scored = eligible.map(meal => ({
     ...meal,
     score: scoreMeal(meal, weekData.nutrients),
   }));
   scored.sort((a, b) => b.score - a.score);
 
+  // Step 3: Randomize within top tier
   const topTier = scored
     .filter(meal => meal.score >= scored[0].score - 1)
     .sort(() => Math.random() - 0.5);
