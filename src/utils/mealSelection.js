@@ -46,6 +46,21 @@ export function getWeekMeals(week, type, exclude = []) {
 }
 
 /**
+ * Check if a meal is a top-tier match for a given week and meal type.
+ * Top tier = score within 1 of the best possible score, and at least 2 nutrient matches.
+ */
+export function isTopTierForWeek(meal, week, type) {
+  const weekData = weeklyNutrition[week] || weeklyNutrition[20];
+  const eligible = mealDatabase[type].filter(m =>
+    !m.weekRange || (week >= m.weekRange[0] && week <= m.weekRange[1])
+  );
+  const scores = eligible.map(m => scoreMeal(m, weekData.nutrients));
+  const maxScore = Math.max(...scores);
+  const mealScore = scoreMeal(meal, weekData.nutrients);
+  return mealScore >= 2 && mealScore >= maxScore - 1;
+}
+
+/**
  * Get trimester number from pregnancy week
  */
 export function getTrimester(week) {

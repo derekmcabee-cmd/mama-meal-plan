@@ -6,7 +6,7 @@ import {
   ChevronDownIcon, ChevronUpIcon, ShuffleIcon, HeartIcon,
 } from './Icons';
 
-export default function MealCard({ meal, mealType, week, onShuffle, onSave, isSaved, index }) {
+export default function MealCard({ meal, mealType, week, onShuffle, onSave, isSaved, isTopTier, index }) {
   const [showIngredients, setShowIngredients] = useState(false);
   const [showRecipe, setShowRecipe] = useState(false);
   const [shuffling, setShuffling] = useState(false);
@@ -61,6 +61,15 @@ export default function MealCard({ meal, mealType, week, onShuffle, onSave, isSa
             <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: config.color, fontFamily: "'DM Sans',sans-serif" }}>
               {config.label}
             </span>
+            {isTopTier && (
+              <span style={{
+                display: "flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 700,
+                padding: "2px 7px", borderRadius: 20, background: `${config.color}15`,
+                color: config.color, fontFamily: "'DM Sans',sans-serif", letterSpacing: "0.03em",
+              }}>
+                <StarIcon /> Top pick
+              </span>
+            )}
             {meal.time > 0 ? (
               <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "#8B6D52", opacity: 0.5, fontFamily: "'DM Sans',sans-serif" }}>
                 <ClockIcon /> {meal.time} min

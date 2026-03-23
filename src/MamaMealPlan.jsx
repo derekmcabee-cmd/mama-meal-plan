@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import weeklyNutrition from './data/weeklyNutrition';
 import mealDatabase from './data/mealDatabase';
 import babySizes from './data/babySizes';
-import { getWeekMeals, getTrimester } from './utils/mealSelection';
+import { getWeekMeals, getTrimester, isTopTierForWeek } from './utils/mealSelection';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { CartIcon, SaveIcon } from './components/Icons';
 import WeekSlider from './components/WeekSlider';
@@ -129,6 +129,7 @@ export default function MamaMealPlan() {
                 onShuffle={() => shuffle(type)}
                 onSave={() => toggleSave(type)}
                 isSaved={isMealSaved(type)}
+                isTopTier={isTopTierForWeek(meals[type], week, type)}
                 index={i}
               />
             ) : null
